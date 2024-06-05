@@ -16,7 +16,7 @@ import com.generation.blogpessoal.model.UsuarioLogin;
 import com.generation.blogpessoal.repository.UsuarioRepository;
 import com.generation.blogpessoal.security.JwtService;
 
-@Service // Spring estamo tratando aqui regras de negocio
+@Service 
 public class UsuarioService {
 
 	@Autowired
@@ -28,47 +28,24 @@ public class UsuarioService {
 	
 	@Autowired
 	private AuthenticationManager authenticationManager;
-	/*
-	 * classe do security que tem gestão de autenticação
-	 * permite acessar metodos que podem entregar ao objeto as suas autoridade concedidas
-	 */
 	
-	
-	//primeira regra de negocio / vamos definir as regras para permitir o cadastro de um usuário
 	public Optional<Usuario> cadastrarUsuario(Usuario usuario){
-		// nome | usuario(email) | senha | foto ingrid@gmail.com
 		if(usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent())
-			return Optional.empty();//meu objeto esta vazio
+			return Optional.empty();
 		
 		usuario.setSenha(criptografarSenha(usuario.getSenha()));
 		
 		return Optional.of(usuarioRepository.save(usuario));
 	}
 	
-	/*
-	 * método que vai tratar para a senha ser criptografada antes de ser persistida no banco
-	 */
 	private String criptografarSenha(String senha) {
-		//Classe que trata a criptografia
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-		return encoder.encode(senha);//método encoder sendo aplicado na senha
+		return encoder.encode(senha);
 	}
 	
-	/*
-	 * segundo problema
-	 * objetivo evitar dois usuário com mesmo email na hora do update
-	 */
-	// nome | usuario(email) | senha | foto ti.jacque@gmail.com -> ingrid@gmail.com
-	
 	public Optional<Usuario> atualizarUsuario(Usuario usuario){
-		//validando se o id passado existe no banco de dados
 		if(usuarioRepository.findById(usuario.getId()).isPresent()){
-			
-			//objeto optional pq pode existir ou não 
-			Optional<Usuario> buscaUsuario = usuarioRepository.findByUsuario(usuario.getUsuario());
-			//3 | jacqueline | ingrid@gmail.com | 123456789 | ""
-			//perquisei no banco ingrid@gmail.com - 2 | ingrid | ingrid@gmail.com | 123456789 | ""
-			
+			Optional<Usuario> buscaUsuario = usuarioRepository.findByUsuario(usuario.getUsuario());		
 			if(buscaUsuario.isPresent() && (buscaUsuario.get().getId() ) != usuario.getId())
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário já existe", null);
 			
@@ -79,16 +56,11 @@ public class UsuarioService {
 		return Optional.empty();
 	}
 	
-	/*
-	 * garantir as regras de negocio para o login
-	 */
 	public Optional<UsuarioLogin> autenticarUsuario(Optional<UsuarioLogin> usuarioLogin){
 		
-		//	objeto com os dados do usuário que tenta logar	
 		var credenciais = new UsernamePasswordAuthenticationToken(usuarioLogin.get().getUsuario(),
 				usuarioLogin.get().getSenha());
 		
-		//tiver esse usuario e senha
 		Authentication authentication = authenticationManager.authenticate(credenciais);
 		
 		if(authentication.isAuthenticated()){
@@ -96,7 +68,6 @@ public class UsuarioService {
 			Optional<Usuario> usuario = usuarioRepository.findByUsuario(usuarioLogin.get().getUsuario());
 			
 			if(usuario.isPresent()) {
-				//passando os dados do objeto retornado do banco de dados para o UsuarioLogin
 				usuarioLogin.get().setId(usuario.get().getId());
 				usuarioLogin.get().setNome(usuario.get().getNome());
 				usuarioLogin.get().setFoto(usuario.get().getFoto());
@@ -108,9 +79,6 @@ public class UsuarioService {
 		}
 		return Optional.empty();
 	}
-	/*
-	 * método que vai la na jwtService e gera o token do usuário
-	 */	
 	private String gerarToken(String usuario) {
 		return "Bearer "+jwtService.generateToken(usuario);
 	}

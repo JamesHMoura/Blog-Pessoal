@@ -24,9 +24,9 @@ import com.generation.blogpessoal.repository.TemaRepository;
 
 import jakarta.validation.Valid;
 
-@RestController //anotação que diz para spring que essa é uma controladora de rotas e acesso aos metodos
-@RequestMapping("/postagens") //rota para chegar nessa classe "insomnia"
-@CrossOrigin(origins = "*", allowedHeaders ="*") //liberar o acesso a outras maquinas /allowedHeaders = liberar passagem de parametros no header
+@RestController 
+@RequestMapping("/postagens") 
+@CrossOrigin(origins = "*", allowedHeaders ="*") 
 public class PostagemController {
 
 	@Autowired
